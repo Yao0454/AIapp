@@ -15,7 +15,7 @@ def extract_images_from_pdf(pdf_file):
         page = doc.load_page(page_num)
         image_list = page.get_images(full=True)
         
-        for img_index, img in enumerate(image_list):
+        for img in image_list:
             xref = img[0]
             base_image = doc.extract_image(xref)
             image_bytes = base_image["image"]

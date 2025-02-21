@@ -1,5 +1,3 @@
-下面是一个为你的项目编写的 README.md 文件。它包含了项目概述、功能说明、安装和使用指南。
-
 PDF-CLIP-Question-Answering
 
 这个项目使用了 PDF 文档解析、OCR 图像识别技术和 CLIP 模型来实现基于文本和图像的问答系统。用户上传 PDF 文档和提问问题，系统会提取文档中的文本和图片内容，利用 CLIP 模型计算图像与文本之间的相似度，从而提供相关答案。
@@ -10,25 +8,13 @@ PDF-CLIP-Question-Answering
 	3.	CLIP 图像与文本相似度计算：使用 CLIP 模型计算图像和文本之间的相似度，用于基于文本问题对图像进行匹配。
 	4.	问答系统：根据提问的问题和 PDF 文档中的信息，返回相关的答案，并根据图像相似度给出最相关的图像。
 
-项目结构
-
-/project_directory
-│
-├── app.py                  # FastAPI 主应用，负责接收请求和返回响应
-├── pdf_text_extraction.py  # 提取PDF文本的功能
-├── image_extraction.py     # 提取PDF中的图片并进行OCR识别
-├── clip_processing.py      # 使用CLIP模型处理文本和图像
-├── utils.py                # 其他工具函数
-├── requirements.txt        # 项目依赖
-└── README.md               # 项目说明
-
 安装与配置
 
 1. 克隆项目
 
 首先，克隆该项目到本地机器：
 
-git clone https://github.com/your-username/pdf-clip-question-answering.git
+git clone https://github.com/Yao0454/AIapp.git
 cd pdf-clip-question-answering
 
 2. 创建虚拟环境（可选）
