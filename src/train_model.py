@@ -1,23 +1,15 @@
 # src/train_model.py
+import os
 import torch
 from transformers import AutoTokenizer, AutoModelForCausalLM, Trainer, TrainingArguments
-from src.pdf_parser import parse_pdf
-from src.text_preprocessing import clean_text, split_text
 
-def train(pdf_files):
-    all_texts = []
-    for file in pdf_files:
-        pages = parse_pdf(file, use_ocr=True)  # 确保开启 OCR
-        for page in pages:
-            if text := page['text']:  # 只有非空内容才加入训练数据
-                all_texts.append(text)
+def train(texts, num_train_epochs=3, output_dir='./model_output', checkpoint_dir='./checkpoints'):
+    if not texts:
+        raise ValueError("没有提供任何文本进行训练！")
 
-    if not all_texts:
-        raise ValueError("所有 PDF 页面均无有效文本，请检查文件格式！")
-
-    print(f"最终提取文本量: {len(all_texts)}")
+    print(f"最终提取文本量: {len(texts)}")
     
-    # 此处构造数据集（示例中用简单的文本列表，实际需要构造合适的 Dataset）
+    # 构造数据集
     class PDFDataset(torch.utils.data.Dataset):
         def __init__(self, texts, tokenizer, max_length=64):
             self.texts = texts
@@ -27,7 +19,7 @@ def train(pdf_files):
             return len(self.texts)
         def __getitem__(self, idx):
             encoding = self.tokenizer(
-                self.texts[idx], return_tensors='pt',
+                self.texts[idx]['text'], return_tensors='pt',
                 truncation=True, padding='max_length', max_length=self.max_length
             )
             encoding = {k: v.squeeze(0) for k, v in encoding.items()}
@@ -38,28 +30,39 @@ def train(pdf_files):
     tokenizer = AutoTokenizer.from_pretrained(model_name)
     model = AutoModelForCausalLM.from_pretrained(model_name)
     
-    dataset = PDFDataset(all_texts, tokenizer)
-    
+    dataset = PDFDataset(texts, tokenizer)
+
     training_args = TrainingArguments(
-        output_dir='./models/fine_tuned_model',
-        num_train_epochs=1,
-        per_device_train_batch_size=2,
-        save_steps=10,
-        logging_steps=5,
+        output_dir=output_dir,
+        overwrite_output_dir=True,
+        num_train_epochs=num_train_epochs,
+        per_device_train_batch_size=4,
+        save_steps=10_000,
         save_total_limit=2,
+        logging_dir='./logs',
+        logging_steps=200,
+        load_best_model_at_end=False,  # 禁用此选项，因为没有评估
+        save_strategy="no",  # 禁用保存策略
+        evaluation_strategy="no"  # 禁用评估
     )
-    
+
     trainer = Trainer(
         model=model,
         args=training_args,
         train_dataset=dataset,
-        tokenizer=tokenizer,
+        tokenizer=tokenizer
     )
-    
-    trainer.train()
-    model.save_pretrained("./models/fine_tuned_model")
-    tokenizer.save_pretrained("./models/fine_tuned_model")
 
+    # 检查是否存在有效的检查点
+    if os.path.isdir(checkpoint_dir) and os.listdir(checkpoint_dir):
+        trainer.train(resume_from_checkpoint=checkpoint_dir)
+    else:
+        trainer.train()
+
+    model.save_pretrained(output_dir)
+    tokenizer.save_pretrained(output_dir)
+
+# 示例调用
 if __name__ == '__main__':
-    # 如果直接运行 train_model.py，可以传入一个测试文件列表
-    train(["data/raw/example.pdf"])
+    sample_texts = [{'text': '这是一个测试文本。'}]
+    train(sample_texts, num_train_epochs=5)

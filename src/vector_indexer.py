@@ -1,4 +1,5 @@
 # src/vector_indexer.py
+import os
 import faiss
 import numpy as np
 import pickle
@@ -15,14 +16,27 @@ class VectorIndexer:
         self.metadata.extend(metadata_list)
     
     def save(self, index_path, meta_path):
+        os.makedirs(os.path.dirname(index_path), exist_ok=True)
         faiss.write_index(self.index, index_path)
         with open(meta_path, 'wb') as f:
             pickle.dump(self.metadata, f)
     
     def load(self, index_path, meta_path):
-        self.index = faiss.read_index(index_path)
-        with open(meta_path, 'rb') as f:
-            self.metadata = pickle.load(f)
+        if not os.path.exists(index_path):
+            print(f"Index file {index_path} does not exist. Creating a new one.")
+            self.index = faiss.IndexFlatL2(self.dim)
+            faiss.write_index(self.index, index_path)
+        else:
+            self.index = faiss.read_index(index_path)
+        
+        if not os.path.exists(meta_path):
+            print(f"Metadata file {meta_path} does not exist. Creating a new one.")
+            self.metadata = []
+            with open(meta_path, 'wb') as f:
+                pickle.dump(self.metadata, f)
+        else:
+            with open(meta_path, 'rb') as f:
+                self.metadata = pickle.load(f)
     
     def search(self, query_vector, k=5):
         """返回与 query_vector 最相似的 k 个向量对应的元数据"""

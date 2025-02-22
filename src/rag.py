@@ -1,11 +1,15 @@
 # src/rag.py
-from embedder import get_embedding
-from vector_indexer import VectorIndexer
+from src.embedder import get_embedding
+from src.vector_indexer import VectorIndexer
 
 def retrieve_relevant_text(query, indexer: VectorIndexer):
     """利用嵌入模型获取查询向量，并在向量索引中检索最相似的文本片段"""
     query_emb = get_embedding(query)
     distances, results = indexer.search(query_emb, k=3)
+    print(f"Query: {query}")
+    print(f"Query Embedding: {query_emb}")
+    print(f"Distances: {distances}")
+    print(f"Results: {results}")
     return results
 
 def generate_answer(query, retrieved_texts):
@@ -15,6 +19,7 @@ def generate_answer(query, retrieved_texts):
     """
     context = "\n".join([text['text'] for text in retrieved_texts])
     prompt = f"根据以下上下文回答问题：\n{context}\n问题：{query}\n答案："
+    print(f"Prompt: {prompt}")
     # 在实际实现中，可将 prompt 输入模型生成答案
     return prompt
 

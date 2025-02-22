@@ -9,3 +9,4 @@ pytesseract
 opencv-python
 Pillow
 pyqt6
+sentence-transformers
