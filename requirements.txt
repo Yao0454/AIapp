@@ -1,0 +1,11 @@
+torch
+torchvision
+torchaudio
+transformers
+datasets
+PyMuPDF
+pdf2image
+pytesseract
+opencv-python
+Pillow
+pyqt6
